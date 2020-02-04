@@ -1,0 +1,261 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import style
+style.use("ggplot")
+import pandas as pd
+from pandas import DataFrame
+from sklearn import linear_model
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error, r2_score
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.cluster import KMeans
+from prettytable import PrettyTable
+from statistics import mean, median, mode, stdev
+#exctracting excel file
+df = pd.read_excel (r'C:\Users\Ehsan\Desktop\handaiscores.xlsx')
+#converting file into dataframe
+df =DataFrame(df,columns=['math','physics','hours'])
+#deleting the columns having ? mark from our data
+df=df.replace('?',np.nan).dropna()
+print('\n\nthe format of our data is :{}\n\n'.format(df.shape))
+df.info()
+#using to_string(index=False) code to delete the index and to make the dataframe look more organized
+print(df.to_string(index=False))
+#doing some statistical calculations to better understand about handai students ;)
+math_=df['math']
+physics_=df['physics']
+hours_=df['hours']
+mean_math=mean(math_)
+mean_physics=mean(physics_)
+mean_hours=mean(hours_)
+median_math=median(math_)
+median_physics=median(physics_)
+median_hours=median(hours_)
+stdev_math=stdev(math_)
+stdev_physics=stdev(physics_)
+stdev_hours=stdev(hours_)
+x = PrettyTable()
+x.field_names = ["statistical trait","Math", "Physics", "hours"]
+x.add_row(["mean", mean_math,mean_physics,mean_hours])
+x.add_row(["median",median_math,median_physics,median_hours])
+x.add_row(["standard deviation", stdev_math,stdev_physics,stdev_hours])
+print(x)
+fig = plt.figure()
+#scatter plot for math and hours studied
+plt.scatter(df['math'], df['hours'], color='red')
+plt.title('math Vs number of hours studying per week', fontsize=14)
+plt.xlabel('math', fontsize=14)
+plt.ylabel('hours', fontsize=14)
+plt.grid(True)
+plt.show()
+#scatter plot for physics and hours studied
+plt.scatter(df['physics'], df['hours'], color='green')
+plt.title( 'physics Vs number of hours studying per week', fontsize=14)
+plt.xlabel('physics', fontsize=14)
+plt.ylabel('hours', fontsize=14)
+plt.grid(True)
+plt.show()
+#3d scatter plot
+fig = plt.figure()
+
+q=df[['math']]
+p=df[['physics']]
+u=df[['hours']]
+
+plt.show()
+
+#calculating the max,min,average for each of columns :math , physics, hours
+max_math=np.max(df[['math']])
+min_math=np.min(df[['math']])
+average_math=np.average(df[['math']])
+format(average_math, '.2f') 
+
+max_physics=np.max(df[['physics']])
+min_physics=np.min(df[['physics']])
+average_physics=np.average(df[['physics']])
+max_hours=np.max(df[['hours']])
+min_hours=np.min(df[['hours']])
+average_hours=np.average(df[['hours']])
+#making a pretty and organized table to illustrate the max , min ,average of each of columns
+#:math , physics, hours
+x = PrettyTable()
+x.field_names = ["category","Math", "Physics", "hours"]
+x.add_row(["Maximum", max_math.values,max_physics.values,max_hours.values])
+x.add_row(["Minumum", min_math.values,min_physics.values, min_hours.values])
+x.add_row(["Average", round(average_math,2), round(average_physics,2),
+round(average_hours,2)])
+print(x)
+#using k-means method to cluster the data (here we cluster math vs hours)
+#clustering math score vs hours studied in 2 clusters
+#converting dataframe in numpy in order to do a clustering problem
+cluster_math_hours= df.as_matrix()
+#deleting the 1st row which is physics because we want to cluster math vs hours
+cluster_math_hours= np.delete(cluster_math_hours,1,1)
+#applying Kmeans
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(cluster_math_hours)
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
+print('the centroids of K-mean are :',centroids)
+print('the labels of K-mean are :',labels)
+#since we have two clusters there are two labels
+#the students with label=0 are those who are diligent students (high score and high hours of
+#studying)
+#the students with label=1 are those who are normal students (low score or low study hours)
+b = np.where(labels==0)
+print('\nthose are handaiseis who have studied diligently and have gotten a nice score in math\n')
+print('there are ',len(cluster_math_hours[b]),'students who have studied diligently\n')
+cluster_math_hours_dataframe1=DataFrame(cluster_math_hours[b],columns=['math','hours'])
+print(cluster_math_hours_dataframe1.to_string(index=False))
+c=np.where(labels==1)
+print('those are handaiseis who should study more or try more to get better score in math')
+print('there are ',len(cluster_math_hours[c]),'students who should study more or try more to get better score in math\n')
+cluster_math_hours_dataframe2=DataFrame(cluster_math_hours[c],columns=['math','hours'])
+print(cluster_math_hours_dataframe2.to_string(index=False)) 
+
+      
+      
+normal_handaisei_number_math=0
+diligent_handaisei_number_math=0
+colors = ["g.","r.","c.","y."]
+print('\n\ncategorizing each handaisei by his/her score in math and the hours he/she has studied:\n\n')
+for i in range(len(cluster_math_hours)):
+ print("handaisei",i+1,":",cluster_math_hours[i])
+ if labels[i]==1:
+  print('normal handaisei')
+  normal_handaisei_number_math=normal_handaisei_number_math+1
+else :
+  print('diligent handaisei')
+  diligent_handaisei_number_math=diligent_handaisei_number_math+1
+
+plt.plot(cluster_math_hours[i][0], cluster_math_hours[i][1], colors[labels[i]], markersize = 10)
+print('normal_handaisei_number:',normal_handaisei_number_math)
+print('diligent_handaisei_number:',diligent_handaisei_number_math)
+plt.scatter(centroids[:, 0],centroids[:, 1], marker = "x", s=150, linewidths = 5, zorder = 10)
+plt.show()
+#clustering physics score vs hours studied in 2 clusters
+#converting dataframe in numpy in order to do a clustering problem
+cluster_physics_hours= df.as_matrix()
+#deleting the 0st row which is physics because we want to cluster physics vs hours
+cluster_physics_hours= np.delete(cluster_physics_hours,0,1)
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(cluster_physics_hours)
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
+print("our centroids in this model are",centroids,"\n" )
+print("our labels in this model are", labels,"\n")
+d= np.where(labels==0)
+print('\nthose are handaiseis who should study more or try more to get better score in physics')
+cluster_physics_hours_dataframe1=DataFrame(cluster_physics_hours[d],columns=
+['physics','hours'])
+print(cluster_physics_hours_dataframe1.to_string(index=False))
+e=np.where(labels==1)
+print('\nthose are handaiseis who have studied diligently and have gotten a nice score in physics\n ')
+cluster_physics_hours_dataframe2=DataFrame(cluster_physics_hours[e],columns=['physics','hours'])
+print(cluster_physics_hours_dataframe2.to_string(index=False))
+normal_handaisei_number_physics=0
+diligent_handaisei_number_physics=0
+colors = ["g.","r.","c.","y."]
+print('\n\ncategorizing each handaisei by his/her score in physics and the hours he/she has studied:\n\n') 
+
+for i in range(len(cluster_physics_hours)):
+ print("handaisei",i+1,":",cluster_physics_hours[i])
+ if labels[i]==0:
+  print('normal handaisei')
+  normal_handaisei_number_physics=normal_handaisei_number_physics+1
+else :
+  print('diligent handaisei')
+  diligent_handaisei_number_physics=diligent_handaisei_number_physics+1
+  plt.plot(cluster_physics_hours[i][0], cluster_physics_hours[i][1], colors[labels[i]],markersize = 10)
+
+print('normal_handaisei_number:',normal_handaisei_number_physics)
+print('diligent_handaisei_number:',diligent_handaisei_number_physics)
+plt.scatter(centroids[:, 0],centroids[:, 1], marker = "x", s=150, linewidths = 5, zorder = 10)
+plt.show()
+
+#linear regression for math-hours
+M = df[['math']]
+H = df['hours']
+model = LinearRegression()
+model.fit(M,H)
+y_pred = model.predict(M)
+plt.scatter(M,H, s=10)
+plt.plot(M, y_pred, color='r')
+plt.title('linear regression line ')
+plt.xlabel('Math score')
+plt.ylabel('hours studied')
+plt.show()
+#polynomial regression for math vs hours studied (degree=2)
+M2 = df[['math']]
+h2 = df['hours']
+poly = PolynomialFeatures(degree =2)
+X_poly = poly.fit_transform(M2)
+poly.fit(X_poly, h2)
+lin2 = LinearRegression()
+lin2.fit(X_poly, h2)
+plt.scatter(M2, h2, color = 'blue')
+plt.plot(M2, lin2.predict(poly.fit_transform(M2)), color = 'red')
+plt.title('quadratic Regression line for math-hours')
+plt.xlabel('math')
+plt.ylabel('hours studied')
+plt.show()
+
+
+#polynomial regression for math vs hours studied (degree=3)
+M3 = df[['math']]
+h3 = df['hours']
+poly = PolynomialFeatures(degree =3)
+X_poly = poly.fit_transform(M3)
+poly.fit(X_poly,h3)
+lin2 = LinearRegression()
+lin2.fit(X_poly, h3)
+plt.scatter(M3, h3, color = 'blue')
+plt.plot(M3, lin2.predict(poly.fit_transform(M3)), color = 'red')
+plt.title('degree 3 regression for math-hours') 
+
+plt.xlabel('math')
+plt.ylabel('hours studied')
+plt.show()
+#linear regression for physics-hours
+P = df[['physics']]
+H = df['hours']
+model = LinearRegression()
+model.fit(P,H)
+y_pred = model.predict(P)
+plt.scatter(P,H, s=10)
+plt.plot(P, y_pred, color='b')
+plt.title('linear regression line for physics-hours ')
+plt.xlabel('physics score')
+plt.ylabel('hours studied')
+plt.show()
+#linear regression for math ,physics Vs hours (2 variable)
+X1 = df[['math','physics']]
+Y1 = df['hours']
+regr = linear_model.LinearRegression()
+regr.fit(X1, Y1)
+print('Intercept: \n', regr.intercept_)
+print('Coefficients: \n', regr.coef_)
+
+#polynomial regression for physics vs hours studied
+P2 = df[['physics']]
+h2 = df['hours']
+poly = PolynomialFeatures(degree =2)
+X_poly = poly.fit_transform(P2)
+poly.fit(X_poly,h2)
+lin2 = LinearRegression()
+lin2.fit(X_poly, h2)
+plt.scatter(P2, h2, color = 'blue')
+plt.plot(P2,lin2.predict(poly.fit_transform(P2)), color = 'red')
+plt.title('quadratic Regression line for physics vs hours')
+plt.xlabel('physics')
+plt.ylabel('hours studied')
+plt.show()
+# prediction with sklearn
+New_Math_score = 56
+New_physics_score = 45
+print ('Predicted number of hours studied by this handaisei: \n')
+regr.predict([[New_Math_score ,New_physics_score]]) 
